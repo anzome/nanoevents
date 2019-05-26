@@ -109,3 +109,45 @@ it('does not clash with Object.prototype properties', function () {
     ee.emit('__proto__')
   }).not.toThrowError()
 })
+
+it('does not broke auto-binding of function to global this', function () {
+  var ee = new NanoEvents()
+
+  function listener () {
+    return this.nanoeventsTestValue.split('')
+  }
+
+  global['nanoeventsTestValue'] = 'test' // to not overwrite anything
+
+  expect(function () {
+    var unbind1 = ee.on('event', listener)
+    var unbind2 = ee.on('event', listener.bind(global))
+    ee.emit('event')
+    unbind1()
+    unbind2()
+  }).not.toThrowError()
+
+  delete global['nanoeventsTestValue']
+})
+
+// it('does not provide any implicit binding', function () {
+//   var ee = new NanoEvents()
+//   var obj = {
+//     testedValue: 'test',
+//     listener: function listener () {
+//       return this.testedValue.split('')
+//     }
+//   }
+//
+//   expect(function () {
+//     var unbind = ee.on('event', obj.listener)
+//     ee.emit('event')
+//     unbind()
+//   }).toThrowError()
+//
+//   expect(function () {
+//     var unbind = ee.on('event', obj.listener.bind(obj))
+//     ee.emit('event')
+//     unbind()
+//   }).not.toThrowError()
+// })
