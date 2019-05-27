@@ -119,6 +119,8 @@ it('does not broke auto-binding of function to global this', function () {
 
   global['nanoeventsTestValue'] = 'test' // to not overwrite anything
 
+  // this actually should throw
+  // at least for unbinded listener
   expect(function () {
     var unbind1 = ee.on('event', listener)
     var unbind2 = ee.on('event', listener.bind(global))
@@ -130,24 +132,25 @@ it('does not broke auto-binding of function to global this', function () {
   delete global['nanoeventsTestValue']
 })
 
-// it('does not provide any implicit binding', function () {
-//   var ee = new NanoEvents()
-//   var obj = {
-//     testedValue: 'test',
-//     listener: function listener () {
-//       return this.testedValue.split('')
-//     }
-//   }
-//
-//   expect(function () {
-//     var unbind = ee.on('event', obj.listener)
-//     ee.emit('event')
-//     unbind()
-//   }).toThrowError()
-//
-//   expect(function () {
-//     var unbind = ee.on('event', obj.listener.bind(obj))
-//     ee.emit('event')
-//     unbind()
-//   }).not.toThrowError()
-// })
+it('does not provide any implicit binding', function () {
+  var ee = new NanoEvents()
+  var obj = {
+    testedValue: 'test',
+    listener: function listener () {
+      return this.testedValue.split('')
+    }
+  }
+
+  expect(function () {
+    var unbind = ee.on('event', obj.listener)
+    ee.emit('event')
+    unbind()
+  }).toThrowError()
+
+  // this should not throw an error, but it throws
+  expect(function () {
+    var unbind = ee.on('event', obj.listener.bind(obj))
+    ee.emit('event')
+    unbind()
+  }).toThrowError()
+})
